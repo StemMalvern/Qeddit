@@ -211,10 +211,10 @@ footer .footer-links a:hover{color:#c8a0c4}
   <div class="profile-banner">
     <div class="banner-bg"></div>
     <div class="profile-card">
-      <div class="profile-avatar-lg">Q</div>
+      <div class="profile-avatar-lg">EE</div>
       <div class="profile-meta">
-        <div class="profile-name">quinn.ashford</div>
-        <div class="profile-handle">u/quinn.ashford</div>
+        <div class="profile-name">Edward Elric</div>
+        <div class="profile-handle">u/Edward Elric</div>
         <div class="profile-stats-row">
           <div class="pstat"><div class="pstat-num" id="totalKarma">0</div><div class="pstat-label">Post Karma</div></div>
           <div class="pstat"><div class="pstat-num">847</div><div class="pstat-label">Comment Karma</div></div>
@@ -238,7 +238,7 @@ footer .footer-links a:hover{color:#c8a0c4}
     <!-- Sidebar -->
     <div>
       <div class="sidebar-card">
-        <h3>About u/quinn.ashford</h3>
+        <h3>About u/Edward Elric</h3>
         <div class="sidebar-bio">Just a person with opinions, a dog who isn't mine, and too many browser tabs open.</div>
         <div class="sidebar-stat-row">
           <div class="sidebar-stat"><div class="sidebar-stat-num" id="sideKarma">0</div><div class="sidebar-stat-label">Post Karma</div></div>
@@ -293,13 +293,13 @@ footer .footer-links a:hover{color:#c8a0c4}
 
 <!-- FOOTER -->
 <footer>
-  <span class="footer-logo">Q<span>eddit</span></span>
+  <span class="footer-logo">EE<span>eddit</span></span>
   <div class="footer-accent"></div>
   <div class="footer-links">
     <a href="#">Help</a><a href="#">About</a><a href="#">Careers</a>
     <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Rules</a>
   </div>
-  <div>© 2025 Qeddit · For educational and demonstration purposes only</div>
+  <div>© 2026 Qeddit · For educational and demonstration purposes only</div>
 </footer>
 
 <script>
@@ -307,9 +307,20 @@ footer .footer-links a:hover{color:#c8a0c4}
    CONFIG — change credentials here
 ═══════════════════════════════════════════════════════════ */
 const CREDENTIALS = {
-  username: "quinn.ashford",
-  password: "password1"
+  username: "Edward Elric",
+  passwordHash: "dbc28bf5515205b7fed14c38980e53962e988a228f85482f9446f697b2c60d9d"
 };
+/* If you're a student here, GET OUT! Go do your lab properly. Sincerly the Dev */
+
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 /* ═══════════════════════════════════════════════════════════
    POSTS DATA
@@ -351,11 +362,11 @@ const posts = [
   },
   {
     id: 2,
-    sub: "dogs",
+    sub: "CSGO",
     flair: null,
-    title: "My fourth foster dog this year is getting adopted tomorrow and I'm not okay",
-    body: "I keep telling myself I won't get attached and I keep being completely wrong about that.\n\nBiscuit has been with me for about three weeks. Eight months old, absolute chaos gremlin, somehow also the most comforting presence in my flat. He's going to a family with a garden in Surrey which is objectively perfect for him and I know that.\n\nI'm still going to cry all day tomorrow.\n\nAnyone else find that fostering actually gets harder the more you do it rather than easier? The rescue coordinator keeps telling me 'you're giving them a bridge to their forever home' which is genuinely true and also doesn't help at all.",
-    image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=500&fit=crop",
+    title: "What more can a man do?",
+    body: " genuinely don't understand how some of the people on my team made it into this rank.\n\nEvery game feels exactly the same. We win pistol, everyone gets overconfident, then suddenly three people are pushing one-by-one into an AWP for absolutely no reason. Nobody communicates until it's time to complain, nobody watches flanks, and somehow basic utility seems to be considered an optional feature.\n\nI'm not expecting professional-level teamwork, but surely asking people to trade kills, call out positions, and maybe not sprint through a smoke every round isn't too much to ask.\n\nThe most impressive part is that whenever we lose a round, it's apparently everyone else's fault. The person who flashed the entire team? Not their fault. The player who ignored the bomb and went hunting for kills? Not their fault. The guy who bought an auto-sniper on round three with no armour? Definitely not their fault.\n\nI keep telling myself it's just a game and that the next match will be better, but somehow each match manages to introduce a completely new and creative way to throw a winning position.\n\nAnyway, rant over. See you all again tomorrow when I make the exact same mistake and queue up for another match.",
+    image: "Images/New CSGO Image.png",
     date: "5 days ago",
     votes: 312,
     comments: [
@@ -525,29 +536,38 @@ function showLogin() {
   document.getElementById('appShell').style.display = 'none';
 }
 
-function doLogin() {
+async function doLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   const err = document.getElementById('loginError');
-  if (u === CREDENTIALS.username && p === CREDENTIALS.password) {
+
+  const inputHash = await sha256(p);
+
+  if (
+    u === CREDENTIALS.username &&
+    inputHash === CREDENTIALS.passwordHash
+  ) {
     err.style.display = 'none';
+
     document.getElementById('loginPage').style.display = 'none';
+
     const app = document.getElementById('appShell');
     app.style.display = 'flex';
     app.style.flexDirection = 'column';
+
     document.getElementById('navRight').innerHTML = `
       <div class="nav-user">
         <div class="nav-avatar">Q</div>
         <span>${CREDENTIALS.username}</span>
       </div>
       <button class="nav-btn" onclick="showLogin()">Log Out</button>`;
+
     buildApp();
   } else {
     err.style.display = 'block';
     document.getElementById('loginPass').value = '';
   }
 }
-
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('loginPage').style.display !== 'none') doLogin();
 });
