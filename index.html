@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qeddit</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#002744;
+  --purple:#9a258f;
+  --white:#ffffff;
+  --bg:#ffffff;
+  --surface:#f6f7f8;
+  --border:#edeff1;
+  --border2:#d5d8db;
+  --text:#1c1c1c;
+  --muted:#878a8c;
+  --upvote:#ff4500;
+  --downvote:#7193ff;
+  --link:#0079d3;
+  --tag-bg:#f0e6f6;
+  --tag-text:#6a0f6a;
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;font-size:14px}
+
+/* ── NAV ── */
+nav{background:var(--navy);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.nav-logo{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;color:var(--white);letter-spacing:-0.5px;user-select:none}
+.nav-logo span{color:#c8a0c4}
+.nav-center{flex:1;max-width:500px;margin:0 24px}
+.nav-search{width:100%;padding:8px 14px;border-radius:20px;border:none;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);font-family:'IBM Plex Sans',sans-serif;font-size:13px;outline:none}
+.nav-search::placeholder{color:rgba(255,255,255,0.45)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:20px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid rgba(255,255,255,0.35);background:transparent;color:rgba(255,255,255,0.85);transition:all .2s}
+.nav-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.6)}
+.nav-btn.primary{background:var(--purple);border-color:var(--purple);color:#fff}
+.nav-btn.primary:hover{background:#b02ea5}
+.nav-user{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.9);font-size:13px;font-weight:500}
+.nav-avatar{width:28px;height:28px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+
+/* ── LOGIN PAGE ── */
+#loginPage{flex:1;display:flex;align-items:center;justify-content:center;background:var(--surface);padding:40px 20px}
+.login-card{background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.1);padding:40px 36px;width:100%;max-width:360px}
+.login-logo{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:500;color:var(--navy);margin-bottom:8px}
+.login-logo span{color:var(--purple)}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:12px;font-weight:500;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.login-field input{width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--purple)}
+.login-error{font-size:12px;color:#d93025;margin-top:4px;display:none}
+.login-submit{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:8px}
+.login-submit:hover{background:#003a66}
+.login-footer{text-align:center;font-size:12px;color:var(--muted);margin-top:20px}
+.login-footer a{color:var(--purple);text-decoration:none}
+
+/* ── APP SHELL ── */
+#appShell{display:none;flex:1;flex-direction:column}
+
+/* ── PROFILE BANNER ── */
+.profile-banner{background:var(--navy);padding:0}
+.banner-bg{height:80px;background:linear-gradient(135deg,#002744 0%,#9a258f 60%,#002744 100%)}
+.profile-card{max-width:1100px;margin:0 auto;padding:0 24px 20px;display:flex;align-items:flex-end;gap:20px;margin-top:-28px}
+.profile-avatar-lg{width:72px;height:72px;border-radius:50%;background:var(--purple);border:4px solid var(--navy);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;flex-shrink:0}
+.profile-meta{flex:1;padding-bottom:4px}
+.profile-name{font-size:20px;font-weight:600;color:var(--white);margin-bottom:2px}
+.profile-handle{font-size:13px;color:rgba(255,255,255,0.55);font-family:'IBM Plex Mono',monospace}
+.profile-stats-row{display:flex;gap:24px;margin-top:8px}
+.pstat{text-align:center}
+.pstat-num{font-size:15px;font-weight:600;color:var(--white)}
+.pstat-label{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px}
+
+/* ── LAYOUT ── */
+.app-body{max-width:1100px;margin:0 auto;padding:24px;display:grid;grid-template-columns:1fr 312px;gap:24px;flex:1;width:100%}
+
+/* ── POSTS LIST ── */
+.posts-section h2{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.post-card{background:#fff;border:1px solid var(--border);border-radius:4px;margin-bottom:10px;display:flex;cursor:pointer;transition:border-color .15s}
+.post-card:hover{border-color:var(--border2)}
+.vote-col{width:40px;background:var(--surface);display:flex;flex-direction:column;align-items:center;padding:8px 4px;gap:2px;flex-shrink:0;border-radius:4px 0 0 4px}
+.vote-btn{background:none;border:none;cursor:pointer;padding:3px;border-radius:2px;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:color .15s}
+.vote-btn:hover.up{color:var(--upvote)}
+.vote-btn:hover.down{color:var(--downvote)}
+.vote-btn svg{width:16px;height:16px;fill:currentColor}
+.vote-score{font-size:12px;font-weight:700;color:var(--text);min-width:20px;text-align:center}
+.post-main{flex:1;padding:10px 12px}
+.post-sub{font-size:12px;color:var(--muted);margin-bottom:4px}
+.post-sub strong{color:var(--purple);font-weight:600}
+.post-sub .dot{margin:0 4px}
+.post-title{font-size:15px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:6px}
+.post-flair{display:inline-block;background:var(--tag-bg);color:var(--tag-tag,var(--tag-text));font-size:11px;font-weight:500;padding:2px 8px;border-radius:12px;margin-bottom:6px}
+.post-preview{font-size:13px;color:#555;line-height:1.5;max-height:60px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,black 60%,transparent 100%);mask-image:linear-gradient(to bottom,black 60%,transparent 100%)}
+.post-preview.has-image{display:none}
+.post-thumb{width:96px;height:72px;object-fit:cover;border-radius:0 4px 4px 0;flex-shrink:0;align-self:center;margin-right:4px}
+.post-footer{display:flex;align-items:center;gap:12px;margin-top:8px}
+.post-meta-btn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted);font-family:'IBM Plex Sans',sans-serif;display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:2px;transition:background .15s}
+.post-meta-btn:hover{background:var(--surface)}
+.post-meta-btn svg{width:14px;height:14px;fill:currentColor}
+
+/* ── SIDEBAR ── */
+.sidebar-card{background:#fff;border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:16px}
+.sidebar-card h3{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px}
+.sidebar-bio{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px}
+.sidebar-stat-row{display:flex;gap:16px;margin-bottom:12px}
+.sidebar-stat{flex:1}
+.sidebar-stat-num{font-size:16px;font-weight:700;color:var(--navy)}
+.sidebar-stat-label{font-size:11px;color:var(--muted)}
+.sidebar-joined{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:8px}
+.cake-icon{font-size:14px}
+.trophy-row{display:flex;flex-wrap:wrap;gap:6px}
+.trophy{background:var(--tag-bg);color:var(--tag-text);font-size:11px;padding:3px 10px;border-radius:12px;font-weight:500}
+
+/* ── POST MODAL ── */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-backdrop.open{opacity:1;pointer-events:all}
+.modal-box{background:#fff;border-radius:4px;width:100%;max-width:860px;margin:auto;transform:translateY(12px);transition:transform .25s cubic-bezier(.25,.46,.45,.94);overflow:hidden}
+.modal-backdrop.open .modal-box{transform:translateY(0)}
+.modal-header{background:var(--navy);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.modal-sub{font-size:13px;color:rgba(255,255,255,0.65);font-family:'IBM Plex Mono',monospace}
+.modal-sub strong{color:#c8a0c4}
+.modal-close{background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:22px;line-height:1;padding:0 4px;transition:color .15s}
+.modal-close:hover{color:#fff}
+.modal-body{padding:20px 24px}
+.modal-title{font-size:20px;font-weight:600;color:var(--text);line-height:1.35;margin-bottom:10px}
+.modal-meta{font-size:12px;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.modal-flair{background:var(--tag-bg);color:var(--tag-text);font-size:11px;font-weight:500;padding:2px 8px;border-radius:12px}
+.modal-image{width:100%;max-height:400px;object-fit:cover;border-radius:4px;margin-bottom:16px;display:block}
+.modal-text{font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap}
+.modal-vote-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:16px 0}
+.modal-vote-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--border2);border-radius:20px;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:all .15s;font-family:'IBM Plex Sans',sans-serif}
+.modal-vote-btn:hover.up{color:var(--upvote);border-color:var(--upvote)}
+.modal-vote-btn:hover.down{color:var(--downvote);border-color:var(--downvote)}
+.modal-vote-btn svg{width:16px;height:16px;fill:currentColor}
+.modal-vote-score{font-size:14px;font-weight:700;color:var(--text)}
+.comments-section h3{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:16px}
+.comment{padding:12px 0;border-bottom:1px solid var(--border);display:flex;gap:12px}
+.comment:last-child{border-bottom:none}
+.comment-avatar{width:28px;height:28px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--navy);flex-shrink:0}
+.comment-body{flex:1}
+.comment-user{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.comment-user.op{color:var(--purple)}
+.comment-user .op-badge{background:var(--purple);color:#fff;font-size:10px;padding:1px 5px;border-radius:2px;margin-left:4px;font-weight:500}
+.comment-user .time{color:var(--muted);font-weight:400;margin-left:6px}
+.comment-text{font-size:13px;color:var(--text);line-height:1.6}
+.comment-votes{display:flex;align-items:center;gap:6px;margin-top:6px}
+.c-vote-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:2px;transition:color .15s}
+.c-vote-btn:hover.up{color:var(--upvote)}
+.c-vote-btn:hover.down{color:var(--downvote)}
+.c-vote-btn svg{width:14px;height:14px;fill:currentColor}
+.c-score{font-size:12px;font-weight:700;color:var(--muted)}
+
+/* ── FOOTER ── */
+footer{background:var(--navy);color:rgba(255,255,255,0.45);text-align:center;padding:20px;font-size:12px}
+footer .footer-logo{font-family:'IBM Plex Mono',monospace;font-size:16px;color:#fff;margin-bottom:8px;display:block}
+footer .footer-logo span{color:#c8a0c4}
+footer .footer-links{display:flex;justify-content:center;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+footer .footer-links a{color:rgba(255,255,255,0.45);text-decoration:none;font-size:11px;transition:color .2s}
+footer .footer-links a:hover{color:#c8a0c4}
+.footer-accent{display:inline-block;width:28px;height:2px;background:var(--purple);border-radius:2px;margin:6px auto 10px}
+
+/* ── UTILS ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     NAV — shown on both login and app views
+══════════════════════════════════════════════ -->
+<nav>
+  <div class="nav-logo">Q<span>eddit</span></div>
+  <div class="nav-center">
+    <input class="nav-search" type="text" placeholder="Search Qeddit">
+  </div>
+  <div class="nav-right" id="navRight">
+    <button class="nav-btn" onclick="showLogin()">Log In</button>
+    <button class="nav-btn primary">Sign Up</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════════════ -->
+<div id="loginPage" style="flex:1;display:flex;align-items:center;justify-content:center;background:var(--surface);padding:40px 20px">
+  <div class="login-card">
+    <div class="login-logo">Q<span>eddit</span></div>
+    <div class="login-sub">Log in to continue to Qeddit</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter your username" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password">
+      <div class="login-error" id="loginError">Incorrect username or password.</div>
+    </div>
+    <button class="login-submit" onclick="doLogin()">Log In</button>
+    <div class="login-footer">New to Qeddit? <a href="#">Sign up</a></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     APP SHELL (shown after login)
+══════════════════════════════════════════════ -->
+<div id="appShell" style="display:none;flex:1;flex-direction:column">
+
+  <!-- Profile banner -->
+  <div class="profile-banner">
+    <div class="banner-bg"></div>
+    <div class="profile-card">
+      <div class="profile-avatar-lg">EE</div>
+      <div class="profile-meta">
+        <div class="profile-name">Edward Elric</div>
+        <div class="profile-handle">u/Edward Elric</div>
+        <div class="profile-stats-row">
+          <div class="pstat"><div class="pstat-num" id="totalKarma">0</div><div class="pstat-label">Post Karma</div></div>
+          <div class="pstat"><div class="pstat-num">847</div><div class="pstat-label">Comment Karma</div></div>
+          <div class="pstat"><div class="pstat-num">12</div><div class="pstat-label">Posts</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body grid -->
+  <div class="app-body">
+
+    <!-- Posts column -->
+    <div>
+      <div class="posts-section">
+        <h2>Posts</h2>
+        <div id="postsContainer"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+      <div class="sidebar-card">
+        <h3>About u/Edward Elric</h3>
+        <div class="sidebar-bio">Just your everyday run of the mill state alchemist. Currently on the run from my own office over a small percolator-shaped misunderstanding.</div>
+        <div class="sidebar-stat-row">
+          <div class="sidebar-stat"><div class="sidebar-stat-num" id="sideKarma">0</div><div class="sidebar-stat-label">Post Karma</div></div>
+          <div class="sidebar-stat"><div class="sidebar-stat-num">847</div><div class="sidebar-stat-label">Comment Karma</div></div>
+        </div>
+        <div class="sidebar-joined"><span class="cake-icon">🎂</span> Joined February 2019</div>
+      </div>
+      <div class="sidebar-card">
+        <h3>Active Communities</h3>
+        <div class="trophy-row" id="communityList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- POST MODAL -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="handleBackdropClick(event)">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-header">
+      <div class="modal-sub">posted to <strong id="mSub"></strong></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-title" id="mTitle"></div>
+      <div class="modal-meta">
+        <span class="modal-flair" id="mFlair" style="display:none"></span>
+        <span id="mDate"></span>
+        <span>·</span>
+        <span id="mVotes"></span>
+        <span>·</span>
+        <span id="mCommentCount"></span>
+      </div>
+      <img class="modal-image" id="mImage" src="" alt="" style="display:none">
+      <div class="modal-text" id="mText"></div>
+      <div class="modal-vote-row">
+        <button class="modal-vote-btn up" onclick="modalVote(1)">
+          <svg viewBox="0 0 24 24"><path d="M12 4l8 8H4z"/></svg> Upvote
+        </button>
+        <span class="modal-vote-score" id="mVoteScore"></span>
+        <button class="modal-vote-btn down" onclick="modalVote(-1)">
+          <svg viewBox="0 0 24 24"><path d="M12 20l-8-8h16z"/></svg> Downvote
+        </button>
+      </div>
+      <div class="comments-section">
+        <h3 id="mCommentsHeading"></h3>
+        <div id="mComments"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">Q<span>eddit</span></span>
+  <div class="footer-accent"></div>
+  <div class="footer-links">
+    <a href="#">Help</a><a href="#">About</a><a href="#">Careers</a>
+    <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Rules</a>
+  </div>
+  <div>© 2026 Qeddit · For educational and demonstration purposes only</div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   CONFIG — change credentials here
+═══════════════════════════════════════════════════════════ */
+const CREDENTIALS = {
+  username: "Edward Elric",
+  passwordHash: "dbc28bf5515205b7fed14c38980e53962e988a228f85482f9446f697b2c60d9d"
+};
+/* If you're a student here, GET OUT! Go do your lab properly. Sincerly the Dev */
+
+async function sha256(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+const posts = [
+  {
+    id: 1,
+    sub: "Coffee Engineer",
+    flair: "Question",
+    title: "What's the optimal roasting temperature for a stubborn batch of high-altitude beans?",
+    body: "Finally got a proper full-size machine set up on my kitchen counter this week — long overdue, and let's just say the logistics of getting it home were more of an ordeal than I expected. Not going to get into the details of exactly how it ended up in my apartment, but it involved a dolly, a very patient elevator, and me questioning some life choices halfway up the stairs.\n\nAnyway, now that it's actually mine, I'm trying to understand roasting properly instead of just complaining about bad office coffee like usual. I've seen people mention bean temps around 195–205°C depending on roast level, but I want to get this right.\n\nFor those of you who roast at home — how do you land on the right curve? Does it change much by bean origin, or is that overthinking it?",
+    date: "3 days ago",
+    votes: 47,
+    comments: [
+      { user: "al_elric", init: "A", text: "You never did explain how you got that thing up three flights of stairs by yourself. I have questions.", votes: 41, time: "3d" },
+      { user: "winry.rockbell", init: "W", text: "Please tell me you didn't throw your back out again moving heavy equipment without asking for help first.", votes: 33, time: "3d" },
+      { user: "office.roy", init: "R", text: "Funny, we're missing a machine just like that from the break room. What a coincidence.", votes: 58, time: "2d" },
+      { user: "ed.e", init: "E", op: true, text: "Coincidences happen, Roy. Anyway, back to the roasting question please.", votes: 27, time: "2d" },
+      { user: "lt.riza", init: "H", text: "Bean temp is only half of it — track your first-crack timing too, it tells you more than the raw number does.", votes: 44, time: "2d" }
+    ]
+  },
+  {
+    id: 2,
+    sub: "music",
+    flair: null,
+    title: "Appreciation post for my buddy",
+    image: "Images/r.webp",
+    body: "WOW! Just went to go see my friend play his saxophone at one of the local pubs and he's absolutely amazing. \n\n I never would have believed that I would be willingly listening to Jazz, yet alone enjoying it. \n\n Anyway, he's amazing and has been a great partner in crime these last few years so go follow him on instagram: @Duke.Silver",
+    date: "2 months ago",
+    votes: 34,
+    comments: [
+      { user: "hackney_harrier", init: "H", text: "Victoria Park is only 10 mins from London Fields and it's brilliant for running — flat, well-lit early mornings, good loop options. About 2.5km around the main path.", votes: 28, time: "2mo" },
+      { user: "eastlondonrunner", init: "E", text: "Homerton to Hackney Marshes along the Lea Navigation is stunning in the morning if you haven't tried it. Longer but very flat and peaceful before 8am.", votes: 21, time: "2mo" },
+      { user: "quinn.ashford", init: "Q", op: true, text: "Victoria Park is such an obvious answer and somehow I hadn't considered it. Going Saturday. Thank you!", votes: 14, time: "2mo" }
+    ]
+  },
+  {
+    id: 3,
+    sub: "Weight Lifting",
+    flair: null,
+    title: "Trying to build enough upper-body strength to carry something heavy up three flights of stairs by myself — any programs that actually work?",
+    body: "Not gym equipment, before anyone asks — more like an appliance. A large one. Hypothetically. I underestimated exactly how much it would weigh once I actually had to move it myself, and my building's elevator has been 'temporarily out of service' for what feels like a permanent state of being.\n\nI'm in decent shape but this exposed a pretty specific weakness — grip strength and just general carrying stamina, not raw lifting. Looking for a program that's actually built around functional carrying strength rather than just bench numbers.",
+    date: "4 days ago",
+    votes: 71,
+    comments: [
+      { user: "al_elric", init: "A", text: "'Hypothetically' is doing a lot of work in this post.", votes: 52, time: "4d" },
+      { user: "winry.rockbell", init: "W", text: "Farmer's carries. Also, seriously, text me next time before you try to move something heavy alone.", votes: 38, time: "4d" },
+      { user: "ed.e", init: "E", op: true, text: "It went fine. Mostly fine. I'm typing this with slightly less feeling in one hand, but fine.", votes: 29, time: "3d" }
+    ]
+  },
+  {
+    id: 4,
+    sub: "yoga",
+    flair: null,
+    title: "Two years in and crow pose still defeats me — is this normal?",
+    body: "I've been practicing for two years, go to a weekly class and try to do 20 mins at home a few times a week. Pretty comfortable with most things now but crow pose just will not click. My instructor keeps saying 'trust the process' which is probably wise and also extremely irritating to hear for the hundredth time.\n\nMy brother finds this hilarious and keeps making comments about my balance, which is rich given he's never been especially graceful himself.\n\nIs there a specific drill that actually helped people crack it? I've tried the block-under-the-feet method and the cushion-in-front-of-you-for-psychological-comfort method.",
+    date: "3 weeks ago",
+    votes: 88,
+    comments: [
+      { user: "al_elric", init: "A", text: "I will never stop bringing up your balance, sorry, it's too easy.", votes: 61, time: "3w" },
+      { user: "winry.rockbell", init: "W", text: "Is this about the pose, or is your wrist acting up again and you're avoiding telling me so I don't lecture you?", votes: 48, time: "3w" },
+      { user: "ed.e", init: "E", op: true, text: "It's about the pose. Mostly. The wrist is fine. Don't worry about the wrist.", votes: 33, time: "3w" }
+    ]
+  },
+  {
+    id: 5,
+    sub: "Travel",
+    flair: null,
+    title: "Do you feel obligated to visit home every time even when you'd genuinely rather not travel?",
+    body: "My family's all out west in a small farming town — the kind of place where everyone knows everyone and half the town raises cattle. I've been living in the city for work for a few years now, and every time there's a reason to go back I feel this low-level guilt if I don't, even on weeks I've been running on empty.\n\nI've made the trip twice in the last few months and I'm exhausted. There's another visit coming up soon and I'm already dreading the travel logistics.\n\nHow do you manage that pull without the guilt eating you alive?",
+    date: "1 month ago",
+    votes: 156,
+    comments: [
+      { user: "pinako.r", init: "P", text: "You could just visit because you want to see people, not because you feel like you owe them a visit, you know.", votes: 73, time: "1mo" },
+      { user: "winry.rockbell", init: "W", text: "You say that like there isn't also a very specific list of things I need to check on you while you're here.", votes: 61, time: "1mo" },
+      { user: "ed.e", init: "E", op: true, text: "I never said I wasn't looking forward to it. I said the train ride is long.", votes: 34, time: "1mo" },
+      { user: "al_elric", init: "A", text: "It's a good kind of tired though, brother. Even you have to admit that.", votes: 42, time: "1mo" }
+    ]
+  },
+  {
+    id: 6,
+    sub: "Coffee Engineer",
+    flair: "Product",
+    title: "Best dairy-free option for someone who genuinely cannot stand the taste of milk?",
+    body: "Not lactose intolerant, not making a statement, I just despise the taste and always have — people assume I'm being difficult on purpose but I promise this predates the coffee obsession by years.\n\nNow that I'm actually trying to make good espresso drinks at home (see: recently upgraded setup), I need something that froths decently without tasting like, well, milk. Oat seems the safest bet but I'm open to suggestions.",
+    date: "1 month ago",
+    votes: 64,
+    comments: [
+      { user: "al_elric", init: "A", text: "You've hated milk since we were kids, everyone who knows you is unsurprised by this post.", votes: 55, time: "1mo" },
+      { user: "hughes.dad", init: "H", text: "My daughter loves oat milk in her hot chocolate, for what it's worth. Not the same as your coffee thing but figured I'd share.", votes: 29, time: "1mo" },
+      { user: "ed.e", init: "E", op: true, text: "Thank you, very relevant, very helpful.", votes: 18, time: "4w" }
+    ]
+  },
+  {
+    id: 7,
+    sub: "antiwork",
+    flair: null,
+    title: "Office sent out a very serious email investigating a 'missing' piece of kitchen equipment. Genuinely can't believe how much time this is taking.",
+    body: "Facilities sent a company-wide email today about a coffee machine that's apparently gone missing from the break room. There's now a whole thread about it, a proposed sign-in sheet for shared appliances going forward, and someone suggested installing a camera. Over a coffee machine.\n\nI have never seen this level of institutional energy directed at anything else in this building, including things that actually matter. Meanwhile nobody has said a word about the broken thermostat that's been out for three weeks.\n\nAnyway. Genuinely can't believe this is a real investigation happening in a professional workplace right now.",
+    date: "6 weeks ago",
+    votes: 1847,
+    comments: [
+      { user: "lt.riza", init: "H", text: "For what it's worth, management is taking this more seriously than you'd think. Just saying.", votes: 412, time: "6w" },
+      { user: "hughes.dad", init: "H", text: "Classic office drama. It'll blow over in a week once everyone forgets about it.", votes: 287, time: "6w" },
+      { user: "office.roy", init: "R", text: "I, for one, fully support a thorough and completely unbiased investigation into this matter.", votes: 501, time: "6w" },
+      { user: "ed.e", init: "E", op: true, text: "Sure, Roy. A completely unbiased investigation. Got it.", votes: 334, time: "5w" }
+    ]
+  },
+  {
+    id: 8,
+    sub: "running",
+    flair: "Routes",
+    title: "Good morning run routes around downtown that aren't the same loop by my office?",
+    body: "I've been running about 4 months now, still very much a beginner, doing around 5k at a time. I usually stick to the loop near my office building because it's familiar, but I've done it so many times I could run it half asleep.\n\nAny suggestions for routes that are flat and quiet early in the morning? I'm in the downtown area if that helps narrow it down.",
+    date: "2 months ago",
+    votes: 34,
+    comments: [
+      { user: "maria.r", init: "M", text: "The park a few blocks from the main office district is much better than the loop everyone defaults to — quieter, tree cover, way less foot traffic.", votes: 28, time: "2mo" },
+      { user: "denny.b", init: "D", text: "Try the riverside path near the east gate. Longer, but flat the whole way and genuinely peaceful before 7am.", votes: 21, time: "2mo" },
+      { user: "ed.e", init: "E", op: true, text: "Somehow never considered the park even though it's basically next door. Going tomorrow.", votes: 14, time: "2mo" }
+    ]
+  },
+  {
+    id: 9,
+    sub: "books",
+    flair: null,
+    title: "Finished a novel about a long journey east and I'm still thinking about it a week later",
+    body: "Read most of it in one sitting, which I told myself I wouldn't do. Not going to spoil the plot — went in blind and that was absolutely the right call.\n\nSomething about it reminded me of the old technical manuals my mentor used to make my brother and I copy out by hand, an entire summer of nothing but transcription. I hated it at the time. In hindsight it's probably why I can still recite half of it from memory.\n\nAnyone have recommendations for something in a similar vein? Long journeys, quiet character studies, that sort of thing.",
+    date: "10 months ago",
+    votes: 241,
+    comments: [
+      { user: "al_elric", init: "A", text: "You HATED copying those manuals, brother, don't rewrite history. You complained the entire summer.", votes: 64, time: "10mo" },
+      { user: "izumi.c", init: "I", text: "And yet here you are, still quoting them a decade later. You're welcome.", votes: 88, time: "10mo" },
+      { user: "ed.e", init: "E", op: true, text: "I never said I regretted it. I said I complained. Both things can be true.", votes: 43, time: "9mo" }
+    ]
+  },
+  {
+    id: 10,
+    sub: "dogs",
+    flair: null,
+    title: "Dogsitting duties while my mechanic friend is away at a conference — tips for a beginner?",
+    body: "I've just started running (about 4 months in, 5k at a time) and apparently the dog I'm watching is also a runner. He loses his mind the second the shoes come out.\n\nProblem is he's still working on loose-lead walking, so right now it's less 'exercise' and more 'interpretive chaos experience.' He's a big, sturdy white dog, very affectionate, absolutely no concept of personal space.\n\nAnyone dealt with this? Better harness, better technique, or do I just wait it out?",
+    date: "2 weeks ago",
+    votes: 127,
+    comments: [
+      { user: "winry.rockbell", init: "W", text: "Please tell me you're not letting Alexander drag you into a ditch again. He did that to me the first week I had him too.", votes: 58, time: "2w" },
+      { user: "pinako.r", init: "P", text: "A sturdier lead helps, but honestly he calms down once he trusts you. Give it a few more days.", votes: 41, time: "2w" },
+      { user: "ed.e", init: "E", op: true, text: "There was one (1) ditch incident and I would like it removed from the historical record.", votes: 67, time: "2w" }
+    ]
+  },
+  {
+    id: 12,
+    sub: "Insurance",
+    flair: "Question",
+    title: "How much would a commercial-grade espresso machine typically be valued at for renters insurance purposes?",
+    body: "Recently added a piece of equipment to my apartment that's worth more than basically everything else I own combined, and it occurred to me I should probably actually check whether my current renters policy would cover it if something happened.\n\nGot a rough appraisal out of curiosity and the replacement estimate came back somewhere around $3,800–$4,200 for something comparable, brand new, dual boiler setup. That number surprised me a bit given it's just sitting on a kitchen counter.\n\nDoes a single high-value item like that usually need its own rider, or does a standard policy typically cover it up to some threshold already? Not looking for specific advice, just trying to understand how this generally works before I make any calls.",
+    date: "2 days ago",
+    votes: 52,
+    comments: [
+      { user: "winry.rockbell", init: "W", text: "That number is suspiciously specific for something you 'recently added,' but sure, let's go with that.", votes: 47, time: "2d" },
+      { user: "al_elric", init: "A", text: "Please just get the rider. For everyone's peace of mind.", votes: 39, time: "2d" },
+      { user: "ed.e", init: "E", op: true, text: "I'm just asking a general insurance question. Stop reading into it.", votes: 22, time: "1d" }
+    ]
+  }
+];
+
+/* ═══════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════ */
+function showLogin() {
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('appShell').style.display = 'none';
+}
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+
+  const inputHash = await sha256(p);
+
+  if (
+    u === CREDENTIALS.username &&
+    inputHash === CREDENTIALS.passwordHash
+  ) {
+    err.style.display = 'none';
+
+    document.getElementById('loginPage').style.display = 'none';
+
+    const app = document.getElementById('appShell');
+    app.style.display = 'flex';
+    app.style.flexDirection = 'column';
+
+    document.getElementById('navRight').innerHTML = `
+      <div class="nav-user">
+        <div class="nav-avatar">EE</div>
+        <span>${CREDENTIALS.username}</span>
+      </div>
+      <button class="nav-btn" onclick="showLogin()">Log Out</button>`;
+
+    buildApp();
+  } else {
+    err.style.display = 'block';
+    document.getElementById('loginPass').value = '';
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginPage').style.display !== 'none') doLogin();
+});
+
+/* ═══════════════════════════════════════
+   BUILD APP
+═══════════════════════════════════════ */
+function buildApp() {
+  const totalVotes = posts.reduce((s, p) => s + p.votes, 0);
+  document.getElementById('totalKarma').textContent = totalVotes.toLocaleString();
+  document.getElementById('sideKarma').textContent = totalVotes.toLocaleString();
+
+  // Community list
+  const subs = [...new Set(posts.map(p => p.sub))];
+  document.getElementById('communityList').innerHTML =
+    subs.map(s => `<span class="trophy">r/${s}</span>`).join('');
+
+  // Posts
+  const container = document.getElementById('postsContainer');
+  container.innerHTML = '';
+  posts.forEach((post, i) => {
+    const card = document.createElement('div');
+    card.className = 'post-card';
+    const hasImg = post.image ? true : false;
+    card.innerHTML = `
+      <div class="vote-col">
+        <button class="vote-btn up" onclick="listVote(event,${i},1)">
+          <svg viewBox="0 0 24 24"><path d="M12 4l8 8H4z"/></svg>
+        </button>
+        <span class="vote-score" id="lv${i}">${fmtVotes(post.votes)}</span>
+        <button class="vote-btn down" onclick="listVote(event,${i},-1)">
+          <svg viewBox="0 0 24 24"><path d="M12 20l-8-8h16z"/></svg>
+        </button>
+      </div>
+      <div class="post-main" onclick="openModal(${i})">
+        <div class="post-sub">posted to <strong>r/${post.sub}</strong><span class="dot">·</span>${post.date}</div>
+        ${post.flair ? `<span class="post-flair">${post.flair}</span>` : ''}
+        <div class="post-title">${post.title}</div>
+        ${!hasImg ? `<div class="post-preview">${post.body.replace(/\n/g,' ')}</div>` : ''}
+        <div class="post-footer">
+          <button class="post-meta-btn" onclick="openModal(${i})">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            ${post.comments.length} comment${post.comments.length !== 1 ? 's' : ''}
+          </button>
+          <button class="post-meta-btn"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Share</button>
+        </div>
+      </div>
+      ${hasImg ? `<img class="post-thumb" src="${post.image}" alt="" onclick="openModal(${i})">` : ''}`;
+    container.appendChild(card);
+  });
+}
+
+function fmtVotes(n) { return n >= 1000 ? (n/1000).toFixed(1).replace('.0','') + 'k' : n; }
+
+/* ═══════════════════════════════════════
+   LIST VOTE
+═══════════════════════════════════════ */
+function listVote(e, idx, dir) {
+  e.stopPropagation();
+  posts[idx].votes += dir;
+  document.getElementById('lv' + idx).textContent = fmtVotes(posts[idx].votes);
+}
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+let currentModalIdx = 0;
+
+function openModal(idx) {
+  currentModalIdx = idx;
+  renderModal();
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('modalBackdrop')) closeModal();
+}
+
+function renderModal() {
+  const p = posts[currentModalIdx];
+  document.getElementById('mSub').textContent = 'r/' + p.sub;
+  document.getElementById('mTitle').textContent = p.title;
+  document.getElementById('mDate').textContent = p.date;
+  document.getElementById('mVotes').textContent = p.votes.toLocaleString() + ' upvotes';
+  document.getElementById('mCommentCount').textContent = p.comments.length + ' comments';
+  document.getElementById('mVoteScore').textContent = p.votes.toLocaleString();
+
+  const flair = document.getElementById('mFlair');
+  if (p.flair) { flair.textContent = p.flair; flair.style.display = 'inline-block'; }
+  else { flair.style.display = 'none'; }
+
+  const img = document.getElementById('mImage');
+  if (p.image) { img.src = p.image; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+
+  document.getElementById('mText').textContent = p.body;
+
+  const heading = document.getElementById('mCommentsHeading');
+  heading.textContent = p.comments.length + ' Comment' + (p.comments.length !== 1 ? 's' : '');
+
+  document.getElementById('mComments').innerHTML = p.comments.map(c => `
+    <div class="comment">
+      <div class="comment-avatar" style="${c.op ? 'background:var(--purple);color:#fff' : ''}">${c.init}</div>
+      <div class="comment-body">
+        <div class="comment-user ${c.op ? 'op' : ''}">
+          ${c.user}${c.op ? '<span class="op-badge">OP</span>' : ''}
+          <span class="time">${c.time}</span>
+        </div>
+        <div class="comment-text">${c.text}</div>
+        <div class="comment-votes">
+          <button class="c-vote-btn up"><svg viewBox="0 0 24 24"><path d="M12 4l8 8H4z"/></svg></button>
+          <span class="c-score">${c.votes}</span>
+          <button class="c-vote-btn down"><svg viewBox="0 0 24 24"><path d="M12 20l-8-8h16z"/></svg></button>
+        </div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('modalBox').scrollTop = 0;
+}
+
+function modalVote(dir) {
+  posts[currentModalIdx].votes += dir;
+  document.getElementById('mVotes').textContent = posts[currentModalIdx].votes.toLocaleString() + ' upvotes';
+  document.getElementById('mVoteScore').textContent = posts[currentModalIdx].votes.toLocaleString();
+  document.getElementById('lv' + currentModalIdx).textContent = fmtVotes(posts[currentModalIdx].votes);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('modalBackdrop').classList.contains('open')) closeModal();
+});
+</script>
+</body>
+</html>
